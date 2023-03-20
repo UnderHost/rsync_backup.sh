@@ -35,3 +35,15 @@ source_path_2: /www/backup/site
 # INSTALL & USAGE
 
 wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/main.zip && unzip main.zip && mv rsync_backup.sh-main rsync_backup && cd rsync_backup && chmod +x rsync_backup.sh && ./rsync_backup.sh
+
+# NOTES
+
+While the script try to install sshpass and rsync on both server, if you have issue you might need to pre install both rsync and sshpass on both server.
+
+Using this command:
+
+yum install -y sshpass rsync
+
+If you want to use the script on Debian instead replace the yum by apt-get.
+
+
