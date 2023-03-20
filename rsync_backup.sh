@@ -54,28 +54,28 @@ fi
 # Check if sshpass is installed on current server, if not install it
 if ! command -v sshpass &> /dev/null; then
     echo -e "${YELLOW}sshpass is not installed on current server. Installing...${NC}"
-    sudo yum update
+    sudo yum update -y
     sudo yum install -y sshpass
 fi
 
 # Check if rsync is installed on current server, if not install it
 if ! command -v rsync &> /dev/null; then
     echo -e "${YELLOW}rsync is not installed on current server. Installing...${NC}"
-    sudo yum update
+    sudo yum update -y
     sudo yum install -y rsync
 fi
 
 # Check if sshpass is installed on destination server, if not install it
 if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v sshpass &> /dev/null; then
     echo -e "${YELLOW}sshpass is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update -y
     sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yuminstall -y sshpass
 fi
 
 # Check if rsync is installed on destination server, if not install it
 if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v rsync &> /dev/null; then
     echo -e "${YELLOW}rsync is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update -y
     sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum install -y rsync
 fi
 
