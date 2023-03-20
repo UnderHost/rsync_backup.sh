@@ -25,13 +25,13 @@ email_address: the email address to use for notifications in case of backup fail
 
 backup_frequency: the frequency of the backup, which can be daily, weekly, or monthly.
 
-Usually aaPanel defaut path are:
+# Usually aaPanel defaut path are:
 
 source_path_1: /www/backup/database
 
 source_path_2: /www/backup/site
 
 
-# INSTALL
+# INSTALL & USAGE
 
 wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/main.zip && unzip main.zip && mv rsync_backup.sh-main rsync_backup && cd rsync_backup && chmod +x rsync_backup.sh && ./rsync_backup.sh
