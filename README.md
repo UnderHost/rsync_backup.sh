@@ -10,12 +10,19 @@ Finally, the script creates a backup directory on the remote server using the ba
 Variables that backup.config file will need to be configured:
 
 source_path_1: the path to the first source directory to be backed up.
+
 source_path_2: the path to the second source directory to be backed up.
+
 destination_ip: the IP address of the remote server where the backup will be stored.
+
 destination_path: the path on the remote server where the backup will be stored.
+
 destination_user: the username to use to connect to the remote server over SSH.
+
 destination_password: the password to use to connect to the remote server over SSH.
+
 email_address: the email address to use for notifications in case of backup failure.
+
 backup_frequency: the frequency of the backup, which can be daily, weekly, or monthly.
 
 Usually aaPanel defaut path are:
