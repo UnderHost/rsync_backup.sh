@@ -20,47 +20,6 @@ if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi
 
-# Prompt user for backup details if any variable is missing
-if [ -z "$source_path_1" ]; then
-    read -p "Enter source path 1: " source_path_1
-fi
-if [ -z "$source_path_2" ]; then
-    read -p "Enter source path 2: " source_path_2
-fi
-if [ -z "$destination_ip" ]; then
-    read -p "Enter destination IP: " destination_ip
-fi
-if [ -z "$destination_user" ]; then
-    read -p "Enter destination user: " destination_user
-fi
-if [ -z "$destination_path" ]; then
-    read -p "Enter destination path: " destination_path
-fi
-if [ -z "$destination_password" ]; then
-    read -p "Enter destination password: " -s destination_password
-fi
-if [ -z "$email_address" ]; then
-    read -p "Enter email address for alerts:  " -s email_address
-fi
-if [ -z "$backup_frequency" ]; then
-    read -p "Enter backup frequency (daily, weekly, or monthly): " backup_frequency
-fi
-
-
-
-# Check if sshpass is installed on current server, if not install it
-if ! command -v sshpass &> /dev/null; then
-    echo -e "${YELLOW}sshpass is not installed on current server. Installing...${NC}"
-    sudo apt-get update
-    sudo apt-get install -y sshpass
-fi
-
-# Check if rsync is installed on current server, if not install it
-if ! command -v rsync &> /dev/null; then
-    echo -e "${YELLOW}rsync is not installed on current server. Installing...${NC}"
-    sudo apt-get update
-    sudo apt-get install -y rsync
-fi
 
 # Prompt user for backup details if config file does not exist
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -88,18 +47,32 @@ else
     source "$CONFIG_FILE"
 fi
 
+# Check if sshpass is installed on current server, if not install it
+if ! command -v sshpass &> /dev/null; then
+    echo -e "${YELLOW}sshpass is not installed on current server. Installing...${NC}"
+    sudo yum update
+    sudo yum install -y sshpass
+fi
+
+# Check if rsync is installed on current server, if not install it
+if ! command -v rsync &> /dev/null; then
+    echo -e "${YELLOW}rsync is not installed on current server. Installing...${NC}"
+    sudo yum update
+    sudo yum install -y rsync
+fi
+
 # Check if sshpass is installed on destination server, if not install it
 if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v sshpass &> /dev/null; then
     echo -e "${YELLOW}sshpass is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo apt-get update
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo apt-get install -y sshpass
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yuminstall -y sshpass
 fi
 
 # Check if rsync is installed on destination server, if not install it
 if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v rsync &> /dev/null; then
     echo -e "${YELLOW}rsync is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo apt-get update
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo apt-get install -y rsync
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum update
+    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" sudo yum install -y rsync
 fi
 
 # Check available space on destination
@@ -110,13 +83,32 @@ if [ "$destination_space" -lt 1024000 ]; then
     exit 1
 fi
 
-# Create backup directory with date and run rsync command
+#Create backup directory with date and run rsync command
 backup_dir="$destination_path/$backup_frequency-$(date +%Y-%m-%d)"
-sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "mkdir -p $backup_dir"
-rsync -avz --exclude-from 'exclude-list.txt' "$source_path_1" "$source_path_2" "$destination_user"@"$destination_ip":"$backup_dir" > backup.log
+sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "mkdir -p '$backup_dir'"
+
+#Set rsync options based on backup frequency
+case $backup_frequency in
+daily)
+rsync_options="-avz --delete --exclude 'weekly*' --exclude 'monthly*'"
+;;
+weekly)
+rsync_options="-avz --delete --exclude 'daily*' --exclude 'monthly*'"
+;;
+monthly)
+rsync_options="-avz --delete --exclude 'daily*' --exclude 'weekly*'"
+;;
+esac
+
+#Run rsync command to perform backup
+rsync $rsync_options -e "sshpass -p '$destination_password' ssh" "$source_path_1" "$destination_user"@"$destination_ip":"$backup_dir"
+rsync $rsync_options -e "sshpass -p '$destination_password' ssh" "$source_path_2" "$destination_user"@"$destination_ip":"$backup_dir"
+
+Log backup results
+echo "$(date) - Backup complete. Files copied to $backup_dir" >> "$log_file"
 
 # Send email with log attached
-echo "Backup complete. Log file attached." | mail -s "Backup Report" -a backup.log "$email_address"
+echo "Backup complete. Log file attached." | mail -s "Backup success - $backup_frequency backup" "$email_address" < "$log_file"
 
 # Add cron job based on frequency
 if [ "$backup_frequency" == "daily" ]; then
@@ -131,3 +123,6 @@ fi
 
 echo -e "${GREEN}Backup completed successfully.${NC}"
 echo -e "Cron job added: ${GREEN}$cron_job${NC}"
+
+#Exit script
+exit 0
