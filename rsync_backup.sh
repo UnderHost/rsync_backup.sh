@@ -23,6 +23,7 @@ fi
 
 # Prompt user for backup details if config file does not exist
 if [ ! -f "$CONFIG_FILE" ]; then
+    echo -e "${YELLOW}Backup config file not found. Prompting user for backup details...${NC}"
     read -p "Enter source path 1: " source_path_1
     read -p "Enter source path 2: " source_path_2
     read -p "Enter destination IP: " destination_ip
@@ -34,6 +35,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     read -p "Enter backup frequency (daily, weekly, or monthly): " backup_frequency
 
     # Save backup details to config file
+    echo -e "${GREEN}Saving backup details to config file...${NC}"
     echo "source_path_1=$source_path_1" > "$CONFIG_FILE"
     echo "source_path_2=$source_path_2" >> "$CONFIG_FILE"
     echo "destination_ip=$destination_ip" >> "$CONFIG_FILE"
@@ -42,8 +44,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "destination_password=$destination_password" >> "$CONFIG_FILE"
     echo "email_address=$email_address" >> "$CONFIG_FILE"
     echo "backup_frequency=$backup_frequency" >> "$CONFIG_FILE"
+    echo -e "${GREEN}Backup details saved successfully.${NC}"
 else
     # Read backup details from config file
+    echo -e "${GREEN}Reading backup details from config file...${NC}"
     source "$CONFIG_FILE"
 fi
 
