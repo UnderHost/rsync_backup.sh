@@ -81,7 +81,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "destination_user=$destination_user" >> "$CONFIG_FILE"
     echo "destination_path=$destination_path" >> "$CONFIG_FILE"
     echo "destination_password=$destination_password" >> "$CONFIG_FILE"
-    echo "destination_password=$email_address" >> "$CONFIG_FILE"
+    echo "email_address=$email_address" >> "$CONFIG_FILE"
     echo "backup_frequency=$backup_frequency" >> "$CONFIG_FILE"
 else
     # Read backup details from config file
