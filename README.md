@@ -21,6 +21,7 @@ backup_frequency: the frequency of the backup, which can be daily, weekly, or mo
 Usually aaPanel defaut path are:
 
 source_path_1: /www/backup/database
+
 source_path_2: /www/backup/site
 
 
