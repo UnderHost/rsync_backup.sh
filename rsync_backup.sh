@@ -6,7 +6,7 @@
 #                                               
 # GNU General Public License v3.0
 # Copyright (C) 2023 UnderHost.com
-# v1.0.4 ALL DISTRO
+# v2.0.1 ALL DISTRO
 # Define colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
