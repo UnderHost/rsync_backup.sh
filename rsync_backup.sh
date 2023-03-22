@@ -6,7 +6,7 @@
 #                                               
 # GNU General Public License v3.0
 # Copyright (C) 2023 UnderHost.com
-# v2.0.1 ALL DISTRO
+# v2.1.0 
 # Define colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -55,20 +55,16 @@ fi
 # Prompt user for backup details if config file does not exist
 if [ ! -f "$CONFIG_FILE" ]; then
     echo -e "${YELLOW}Backup config file not found. Prompting user for backup details...${NC}"
-    
-    # Use dialog to create a simple user interface
-    source_path_1=$(dialog --stdout --inputbox "Enter source path 1:" 8 40)
-    source_path_2=$(dialog --stdout --inputbox "Enter source path 2:" 8 40)
-    destination_ip=$(dialog --stdout --inputbox "Enter destination IP:" 8 40)
-    destination_path=$(dialog --stdout --inputbox "Enter destination path:" 8 40)
-    destination_user=$(dialog --stdout --inputbox "Enter destination user:" 8 40)
-    destination_password=$(dialog --stdout --insecure --passwordbox "Enter destination password:" 8 40)
-    email_address=$(dialog --stdout --inputbox "Enter email address for alerts:" 8 40)
-    backup_frequency=$(dialog --stdout --menu "Enter backup frequency:" 10 40 3 \
-        "daily" "Daily" \
-        "weekly" "Weekly" \
-        "monthly" "Monthly")
-    
+    read -p "Enter source path 1: " source_path_1
+    read -p "Enter source path 2: " source_path_2
+    read -p "Enter destination IP: " destination_ip
+    read -p "Enter destination path: " destination_path
+    read -p "Enter destination user: " destination_user
+    read -p "Enter destination password: " -s destination_password
+    read -p "Enter email address for alerts:  "  email_address
+    echo
+    read -p "Enter backup frequency (daily, weekly, or monthly): " backup_frequency
+
     # Save backup details to config file
     echo -e "${GREEN}Saving backup details to config file...${NC}"
     echo "source_path_1=$source_path_1" > "$CONFIG_FILE"
