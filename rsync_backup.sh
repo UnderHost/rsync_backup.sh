@@ -6,50 +6,6 @@
 #                                               
 # GNU General Public License v3.0
 # Copyright (C) 2023 UnderHost.com
-# v1.0.3
-# Define colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
-
-CONFIG_FILE="backup.config"
-
-# Read backup details from config file
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-fi
-
-
-# Prompt user for backup details if config file does not exist
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo -e "${YELLOW}Backup config file not found. Prompting user for backup details...${NC}"
-    read -p "Enter source path 1: " source_path_1
-    read -p "Enter source path 2: " source_path_2
-    read -p "Enter destination IP: " destination_ip
-    read -p "Enter destination path: " destination_path
-    read -p "Enter destination user: " destination_user
-    read -p "Enter destination password: " -s destination_password
-    read -p "Enter email address for alerts:  "  email_address
-    echo
-    read -p "Enter backup frequency (daily, weekly, or monthly): " backup_frequency
-
-    # Save backup details to config file
-    echo -e "${GREEN}Saving backup details to config file...${NC}"
-    echo "source_path_1=$source_path_1" > "$CONFIG_FILE"
-    echo "source_path_2=$source_path_2" >> "$CONFIG_FILE"
-    echo "destination_ip=$destination_ip" >> "$CONFIG_FILE"
-    echo "destination_user=$destination_user" >> "$CONFIG_FILE"
-    echo "destination_path=$destination_path" >> "$CONFIG_FILE"
-    echo "destination_password=$destination_password" >> "$CONFIG_FILE"
-    echo "email_address=$email_address" >> "$CONFIG_FILE"#!/bin/bash
-#  _   _ _  _ ___  ___ ___ _  _  ___  ___ _____ 
-# | | | | \| |   \| __| _ \ || |/ _ \/ __|_   _|
-# | |_| | .` | |) | _||   / __ | (_) \__ \ | |  
-#  \___/|_|\_|___/|___|_|_\_||_|\___/|___/ |_|  
-#                                               
-# GNU General Public License v3.0
-# Copyright (C) 2023 UnderHost.com
 #
 # Define colors for output
 RED='\033[0;31m'
