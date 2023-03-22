@@ -31,26 +31,19 @@ Using rsync_backup.sh to back up your files ensures the safety and security of y
 
 ## The following variables in the backup.config file can be modified manually:
 
-source_path_1: the path to the first source directory to be backed up.
-
-source_path_2: the path to the second source directory to be backed up.
-
-destination_ip: the IP address of the remote server where the backup will be stored.
-
-destination_path: the path on the remote server where the backup will be stored.
-
-destination_user: the username to use to connect to the remote server over SSH.
-
-destination_password: the password to use to connect to the remote server over SSH.
-
-email_address: the email address to use for notifications in case of backup failure.
-
-backup_frequency: the frequency of the backup, which can be daily, weekly, or monthly.
+* source_path_1: the path to the first source directory to be backed up.
+* source_path_2: the path to the second source directory to be backed up.
+* destination_ip: the IP address of the remote server where the backup will be stored.
+* destination_path: the path on the remote server where the backup will be stored.
+* destination_user: the username to use to connect to the remote server over SSH.
+* destination_password: the password to use to connect to the remote server over SSH.
+* email_address: the email address to use for notifications in case of backup failure.
+* backup_frequency: the frequency of the backup, which can be daily, weekly, or monthly.
 
 ### The default aaPanel paths are:
 
-source_path_1: /www/backup/database
-source_path_2: /www/backup/site
+* source_path_1: /www/backup/database
+* source_path_2: /www/backup/site
 
 # Installation and Usage
 
