@@ -54,6 +54,14 @@ source_path_2: /www/backup/site
 
 # Installation and Usage
 
+## Prerequisites
+### Before you can use rsync_backup.sh, you need to have the following prerequisites installed on your system:
+
+Debian: apt-get install -y rsync sshpass dialog
+Centos: sudo yum install -y rsync sshpass dialog
+ArchLinux: sudo pacman -S rsync sshpass dialog
+AplineLinux: sudo apk add rsync sshpass dialo
+
 ## To install and use the script, run the following command:
 
 wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/rsync_backup.zip && \
