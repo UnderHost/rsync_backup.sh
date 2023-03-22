@@ -36,52 +36,21 @@ install_package() {
     elif command -v zypper &> /dev/null; then
         sudo zypper refresh
         sudo zypper install -y "$1"
+    elif command -v pacman &> /dev/null; then
+        sudo pacman -Syu --noconfirm "$1"
+    elif command -v apk &> /dev/null; then
+        sudo apk update
+        sudo apk add "$1"
     else
         echo -e "${RED}Package manager not supported. Please install $1 manually.${NC}"
         exit 1
     fi
 }
 
-
-
 # Read backup details from config file
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi
-
-
-# Prompt user for backup details if config file does not exist
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo -e "${YELLOW}Backup config file not found. Prompting user for backup details...${NC}"
-    read -p "Enter source path 1: " source_path_1
-    read -p "Enter source path 2: " source_path_2
-    read -p "Enter destination IP: " destination_ip
-    read -p "Enter destination path: " destination_path
-    read -p "Enter destination user: " destination_user
-    read -p "Enter destination password: " -s destination_password
-    read -p "Enter email address for alerts:  "  email_address
-    echo#!/bin/bash
-#  _   _ _  _ ___  ___ ___ _  _  ___  ___ _____ 
-# | | | | \| |   \| __| _ \ || |/ _ \/ __|_   _|
-# | |_| | .` | |) | _||   / __ | (_) \__ \ | |  
-#  \___/|_|\_|___/|___|_|_\_||_|\___/|___/ |_|  
-#                                               
-# GNU General Public License v3.0
-# Copyright (C) 2023 UnderHost.com
-# v1.0.3
-# Define colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
-
-CONFIG_FILE="backup.config"
-
-# Read backup details from config file
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-fi
-
 
 # Prompt user for backup details if config file does not exist
 if [ ! -f "$CONFIG_FILE" ]; then
