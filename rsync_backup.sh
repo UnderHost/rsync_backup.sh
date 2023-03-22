@@ -6,12 +6,23 @@
 #                                               
 # GNU General Public License v3.0
 # Copyright (C) 2023 UnderHost.com
-#
+# v1.0.4 ALL DISTRO
 # Define colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
+
+get_distro() {
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    DISTRO=$ID
+  else
+    DISTRO=$(uname -s)
+  fi
+}
+
+get_distro
 
 CONFIG_FILE="backup.config"
 
@@ -54,15 +65,47 @@ fi
 # Check if sshpass is installed on current server, if not install it
 if ! command -v sshpass &> /dev/null; then
     echo -e "${YELLOW}sshpass is not installed on current server. Installing...${NC}"
-    sudo yum update -y
-    sudo yum install -y sshpass
+    case "$DISTRO" in
+        centos|rhel|fedora)
+            sudo yum update -y
+            sudo yum install -y sshpass
+            ;;
+        debian|ubuntu)
+            sudo apt update
+            sudo apt install -y sshpass
+            ;;
+        opensuse*|sles)
+            sudo zypper refresh
+            sudo zypper install -y sshpass
+            ;;
+        *)
+            echo "Unsupported distribution. Exiting."
+            exit 1
+            ;;
+    esac
 fi
 
 # Check if rsync is installed on current server, if not install it
 if ! command -v rsync &> /dev/null; then
     echo -e "${YELLOW}rsync is not installed on current server. Installing...${NC}"
-    sudo yum update -y
-    sudo yum install -y rsync
+    case "$DISTRO" in
+        centos|rhel|fedora)
+            sudo yum update -y
+            sudo yum install -y rsync
+            ;;
+        debian|ubuntu)
+            sudo apt update
+            sudo apt install -y rsync
+            ;;
+        opensuse*|sles)
+            sudo zypper refresh
+            sudo zypper install -y rsync
+            ;;
+        *)
+            echo "Unsupported distribution. Exiting."
+            exit 1
+            ;;
+    esac
 fi
 
 # Check if sshpass is installed on destination server, if not install it
