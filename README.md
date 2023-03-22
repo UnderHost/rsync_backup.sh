@@ -1,14 +1,32 @@
-# rsync_backup.sh:
+# UnderHost.com - aaPanel -rsync_backup.sh:
 
-This bash script is designed to backup files from two source paths to a remote server over SSH using rsync and sshpass. aaPanel backup uses two separate folders for backup: one for databases and the other for files. The script is intended to be run on a regular basis based on a frequency defined in a configuration file or input by the user with aaPanel or any RHEL-based system.
+# What is rsync_backup.sh?
 
-The script first checks for the existence of a configuration file. If found, it reads the backup details from it. If not, the script prompts the user to enter the backup details and saves them to the configuration file for future runs.
+rsync_backup.sh is a free and open-source bash script that enables you to backup files from two source paths to a remote server over SSH using rsync and sshpass. While it was designed to work with aaPanel, it can be used in any RHEL-based system.
 
-The script checks whether sshpass and rsync are installed on both local and remote servers, installing them if necessary. It also checks for sufficient available space on the remote server. If there is not enough space, the backup is aborted, and an email is sent to the specified email address to notify the user.
+# How does rsync_backup.sh work?
 
-Finally, the script creates a backup directory on the remote server using the backup frequency and the current date as part of the directory name. It then runs the rsync command to back up the files from the two source paths to the remote server.
+The script uses a configuration file to manage backup details, or it prompts you to enter the details if the configuration file doesn't exist. It then checks whether sshpass and rsync are installed on both local and remote servers, installing them if necessary. It also checks for sufficient available space on the remote server.
 
-# The following variables in the backup.config file must be configured:
+After the checks, the script creates a backup directory on the remote server using the backup frequency and the current date as part of the directory name. It then runs the rsync command to back up the files from the two source paths to the remote server.
+
+# What are the benefits of using rsync_backup.sh?
+
+-Easy to install and use
+-Supports aaPanel backup structure
+-Flexible backup options (daily, weekly, or monthly)
+-Secure and efficient data transfer with rsync
+-Email notifications for backup success alerts and log file attachments
+-Cron job automation
+-Intelligent configuration file usage
+-Dependency and space check
+-How do I get started with rsync_backup.sh?
+
+rsync_backup.sh is a free and open-source script that you can download and use immediately. Simply copy the script to your server and configure the backup settings using the configuration file or the prompt. Once configured, you can run the script manually or set up a cron job for automatic backups.
+
+Using rsync_backup.sh to back up your files ensures the safety and security of your data. With its flexibility, security, and ease of use, rsync_backup.sh is the perfect solution for users of all skill levels who want to safeguard their important data. Try it today and experience the peace of mind that comes with knowing your data is safe and secure.
+
+# The following variables in the backup.config can be modified manually:
 
 source_path_1: the path to the first source directory to be backed up.
 
@@ -34,11 +52,20 @@ source_path_2: /www/backup/site
 
 # To install and use the script, run the following command:
 
-wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/main.zip && unzip main.zip && mv rsync_backup.sh-main rsync_backup && cd rsync_backup && chmod +x rsync_backup.sh && ./rsync_backup.sh
+wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/rsync_backup.zip && \
+unzip rsync_backup.zip && \
+mv rsync_backup.sh-rsync_backup rsync_backup && \
+cd rsync_backup && \
+chmod +x rsync_backup.sh && \
+./rsync_backup.sh
 
-Please note that while the script attempts to install sshpass and rsync on both servers, you may need to pre-install these packages on both servers using the following command:
+# To uninstall:
 
-yum install -y sshpass rsync
+rm -rf rsync_backup
 
-If you want to use the script on Debian, replace "yum" with "apt-get".
+(If you have created or modified any files outside of the rsync_backup directory while using the script, you may need to remove them manually)
+
+# Should work on all linux distro
+
+Debian, Ubuntu, Fedora, CentOS, RHEL, SUSE, and their derivatives, Arch & Alpine Linux as well.
 
