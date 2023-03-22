@@ -12,14 +12,14 @@ After the checks, the script creates a backup directory on the remote server usi
 
 # Features
 
--Easy to install and use
--Supports aaPanel backup structure
--Flexible backup options (daily, weekly, or monthly)
--Secure and efficient data transfer with rsync
--Email notifications for backup success alerts and log file attachments
--Cron job automation
--Intelligent configuration file usage
--Dependency and space check
+Easy to install and use
+Supports aaPanel backup structure
+Flexible backup options (daily, weekly, or monthly)
+Secure and efficient data transfer with rsync
+Email notifications for backup success alerts and log file attachments
+Cron job automation
+Intelligent configuration file usage
+Dependency and space check
 
 # Getting Started
 
