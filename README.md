@@ -1,6 +1,6 @@
 # UnderHost.com - aaPanel -rsync_backup.sh:
 
-# What is rsync_backup.sh?
+## What is rsync_backup.sh?
 
 rsync_backup.sh is a free and open-source bash script that enables you to backup files from two source paths to a remote server over SSH using rsync and sshpass. Although originally designed for aaPanel, it is compatible with any RHEL-based system, including Debian, Ubuntu, Fedora, CentOS, RHEL, SUSE, Arch, and Alpine Linux.
 
@@ -12,14 +12,14 @@ After the checks, the script creates a backup directory on the remote server usi
 
 # Features
 
-Easy to install and use
-Supports aaPanel backup structure
-Flexible backup options (daily, weekly, or monthly)
-Secure and efficient data transfer with rsync
-Email notifications for backup success alerts and log file attachments
-Cron job automation
-Intelligent configuration file usage
-Dependency and space check
+* Easy to install and use
+* Supports aaPanel backup structure
+* Flexible backup options (daily, weekly, or monthly)
+* Secure and efficient data transfer with rsync
+* Email notifications for backup success alerts and log file attachments
+* Cron job automation
+* Intelligent configuration file usage
+* Dependency and space check
 
 # Getting Started
 
@@ -29,25 +29,32 @@ Using rsync_backup.sh to back up your files ensures the safety and security of y
 
 # Configuration
 
-The following variables in the backup.config file can be modified manually:
+## The following variables in the backup.config file can be modified manually:
 
 source_path_1: the path to the first source directory to be backed up.
+
 source_path_2: the path to the second source directory to be backed up.
+
 destination_ip: the IP address of the remote server where the backup will be stored.
+
 destination_path: the path on the remote server where the backup will be stored.
+
 destination_user: the username to use to connect to the remote server over SSH.
+
 destination_password: the password to use to connect to the remote server over SSH.
+
 email_address: the email address to use for notifications in case of backup failure.
+
 backup_frequency: the frequency of the backup, which can be daily, weekly, or monthly.
 
-The default aaPanel paths are:
+### The default aaPanel paths are:
 
 source_path_1: /www/backup/database
 source_path_2: /www/backup/site
 
 # Installation and Usage
 
-To install and use the script, run the following command:
+## To install and use the script, run the following command:
 
 wget https://github.com/UnderHost/rsync_backup.sh/archive/refs/heads/rsync_backup.zip && \
 unzip rsync_backup.zip && \
