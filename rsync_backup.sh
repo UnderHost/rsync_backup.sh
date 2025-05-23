@@ -4,156 +4,151 @@
 # | |_| | .` | |) | _||   / __ | (_) \__ \ | |  
 #  \___/|_|\_|___/|___|_|_\_||_|\___/|___/ |_|  
 #                                               
+# UnderHost Dedicated Server Toolkit
 # GNU General Public License v3.0
-# Copyright (C) 2023 UnderHost.com
-# v2.1.0 
-# Define colors for output
+# Copyright (C) 2023-2025 UnderHost.com
+# v2.2.0 (Optimized for UnderHost NVMe Storage)
+
+# Configuration
+CONFIG_FILE="/etc/underhost/backup.conf"
+LOG_FILE="/var/log/underhost_backup.log"
+LOCK_FILE="/tmp/underhost_backup.lock"
+
+# Define colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-CONFIG_FILE="backup.config"
 
-get_distro() {
-  if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    DISTRO=$ID
+# UnderHost header
+echo -e "${BLUE}"
+echo "   ___  _   _ _____ _   _ _  _ ___ ___  ___ "
+echo "  / _ \| | | |_   _| | | | \| | __/ _ \/ __|"
+echo " | (_) | |_| | | | | |_| | .\` | _| (_) \__ \\"
+echo "  \___/ \___/  |_|  \___/|_|\_|___\___/|___/"
+echo -e "${NC}"
+echo "=== UnderHost Dedicated Server Backup Solution ==="
+echo ""
+
+# Check for root
+if [ "$(id -u)" -ne 0 ]; then
+  echo -e "${RED}Error: This script must be run as root${NC}" >&2
+  exit 1
+fi
+
+# Check for existing lock file
+if [ -f "$LOCK_FILE" ]; then
+  echo -e "${YELLOW}Backup is already running (lock file exists)${NC}"
+  exit 0
+fi
+
+# Create lock file
+touch "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"; exit' INT TERM EXIT
+
+# Function to install packages
+install_package() {
+  echo -e "${YELLOW}Installing $1...${NC}"
+  if command -v apt-get &> /dev/null; then
+    apt-get update && apt-get install -y "$1"
+  elif command -v yum &> /dev/null; then
+    yum install -y "$1"
+  elif command -v dnf &> /dev/null; then
+    dnf install -y "$1"
   else
-    DISTRO=$(uname -s)
+    echo -e "${RED}Error: Package manager not supported${NC}"
+    exit 1
   fi
 }
 
-get_distro
+# Initialize configuration
+init_config() {
+  mkdir -p /etc/underhost
+  echo -e "${YELLOW}Initializing new backup configuration...${NC}"
+  
+  read -p "Enter source path 1: " source_path_1
+  read -p "Enter source path 2 (optional, press enter to skip): " source_path_2
+  read -p "Enter destination IP: " destination_ip
+  read -p "Enter destination SSH port (default 22): " destination_port
+  destination_port=${destination_port:-22}
+  read -p "Enter destination user: " destination_user
+  read -p "Enter destination path: " destination_path
+  read -p "Enter email for notifications: " email_address
+  read -p "Backup frequency (daily/weekly/monthly): " backup_frequency
 
-# Function to install packages based on package manager
-install_package() {
-    if command -v apt-get &> /dev/null; then
-        sudo apt-get update
-        sudo apt-get install -y "$1"
-    elif command -v yum &> /dev/null; then
-        sudo yum update -y
-        sudo yum install -y "$1"
-    elif command -v zypper &> /dev/null; then
-        sudo zypper refresh
-        sudo zypper install -y "$1"
-    elif command -v pacman &> /dev/null; then
-        sudo pacman -Syu --noconfirm "$1"
-    elif command -v apk &> /dev/null; then
-        sudo apk update
-        sudo apk add "$1"
-    else
-        echo -e "${RED}Package manager not supported. Please install $1 manually.${NC}"
-        exit 1
-    fi
+  # Generate config file
+  cat > "$CONFIG_FILE" <<EOL
+# UnderHost Backup Configuration
+source_path_1='$source_path_1'
+source_path_2='$source_path_2'
+destination_ip='$destination_ip'
+destination_port='$destination_port'
+destination_user='$destination_user'
+destination_path='$destination_path'
+email_address='$email_address'
+backup_frequency='$backup_frequency'
+EOL
+
+  echo -e "${GREEN}Configuration saved to $CONFIG_FILE${NC}"
 }
 
-# Read backup details from config file
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-fi
-
-# Prompt user for backup details if config file does not exist
+# Load configuration
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo -e "${YELLOW}Backup config file not found. Prompting user for backup details...${NC}"
-    read -p "Enter source path 1: " source_path_1
-    read -p "Enter source path 2: " source_path_2
-    read -p "Enter destination IP: " destination_ip
-    read -p "Enter destination path: " destination_path
-    read -p "Enter destination user: " destination_user
-    read -p "Enter destination password: " -s destination_password
-    read -p "Enter email address for alerts:  "  email_address
-    echo
-    read -p "Enter backup frequency (daily, weekly, or monthly): " backup_frequency
-
-    # Save backup details to config file
-    echo -e "${GREEN}Saving backup details to config file...${NC}"
-    echo "source_path_1=$source_path_1" > "$CONFIG_FILE"
-    echo "source_path_2=$source_path_2" >> "$CONFIG_FILE"
-    echo "destination_ip=$destination_ip" >> "$CONFIG_FILE"
-    echo "destination_user=$destination_user" >> "$CONFIG_FILE"
-    echo "destination_path=$destination_path" >> "$CONFIG_FILE"
-    echo "destination_password=$destination_password" >> "$CONFIG_FILE"
-    echo "email_address=$email_address" >> "$CONFIG_FILE"
-    echo "backup_frequency=$backup_frequency" >> "$CONFIG_FILE"
-    echo -e "${GREEN}Backup details saved successfully.${NC}"
-else
-    # Read backup details from config file
-    echo -e "${GREEN}Reading backup details from config file...${NC}"
-    source "$CONFIG_FILE"
+  init_config
 fi
+source "$CONFIG_FILE"
 
-# Check if sshpass is installed on current server, if not install it
-if ! command -v sshpass &> /dev/null; then
-    echo -e "${YELLOW}sshpass is not installed on current server. Installing...${NC}"
-    install_package "sshpass"
-fi
+# Verify required packages
+for pkg in rsync sshpass mailutils; do
+  if ! command -v "$pkg" &> /dev/null; then
+    install_package "$pkg"
+  fi
+done
 
-# Check if rsync is installed on current server, if not install it
-if ! command -v rsync &> /dev/null; then
-    echo -e "${YELLOW}rsync is not installed on current server. Installing...${NC}"
-    install_package "rsync"
-fi
+# Backup function
+perform_backup() {
+  local timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+  local backup_dir="$destination_path/$backup_frequency-$timestamp"
+  
+  echo -e "${BLUE}Starting UnderHost Backup at $(date)${NC}" | tee -a "$LOG_FILE"
+  
+  # Create backup directory
+  sshpass -p "$destination_password" ssh -p "$destination_port" "$destination_user@$destination_ip" \
+    "mkdir -p '$backup_dir'"
+  
+  # Set rsync options
+  local rsync_opts="-avz --progress --delete --exclude='*.tmp' --exclude='cache/*'"
+  
+  # Perform backup
+  echo -e "${YELLOW}Backing up $source_path_1...${NC}" | tee -a "$LOG_FILE"
+  sshpass -p "$destination_password" rsync $rsync_opts -e "ssh -p $destination_port" \
+    "$source_path_1" "$destination_user@$destination_ip:$backup_dir" | tee -a "$LOG_FILE"
+  
+  if [ -n "$source_path_2" ]; then
+    echo -e "${YELLOW}Backing up $source_path_2...${NC}" | tee -a "$LOG_FILE"
+    sshpass -p "$destination_password" rsync $rsync_opts -e "ssh -p $destination_port" \
+      "$source_path_2" "$destination_user@$destination_ip:$backup_dir" | tee -a "$LOG_FILE"
+  fi
+  
+  # Verify backup
+  local backup_size=$(sshpass -p "$destination_password" ssh -p "$destination_port" \
+    "$destination_user@$destination_ip" "du -sh '$backup_dir' | cut -f1")
+  
+  echo -e "${GREEN}Backup completed successfully!${NC}" | tee -a "$LOG_FILE"
+  echo -e "Backup size: $backup_size" | tee -a "$LOG_FILE"
+  
+  # Send notification
+  echo "UnderHost Backup Report" > /tmp/backup_report.txt
+  echo "---------------------" >> /tmp/backup_report.txt
+  tail -n 10 "$LOG_FILE" >> /tmp/backup_report.txt
+  mail -s "UnderHost Backup Completed ($backup_frequency)" "$email_address" < /tmp/backup_report.txt
+}
 
-# Check if sshpass is installed on destination server, if not install it
-if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v sshpass &> /dev/null; then
-    echo -e "${YELLOW}sshpass is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "$(declare -f install_package); install_package sshpass"
-fi
+# Main execution
+perform_backup
 
-# Check if rsync is installed on destination server, if not install it
-if ! sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" command -v rsync &> /dev/null; then
-    echo -e "${YELLOW}rsync is not installed on destination server. Installing...${NC}"
-    sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "$(declare -f install_package); install_package rsync"
-fi
-
-# Check available space on destination
-destination_space=$(sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "df -h --output=avail $destination_path" | tail -n 1 | tr -d ' ')
-if [ "${destination_space%%[^0-9]*}" -lt 1024 ]; then
-    echo -e "${RED}Not enough space on destination. Aborting.${NC}" | tee "$log_file"
-    mail -s "Backup failed - not enough space on destination" "$email_address" < "$log_file"
-    exit 1
-fi
-
-# Create backup directory with date and run rsync command
-backup_dir="$destination_path/$backup_frequency-$(date +%Y-%m-%d)"
-sshpass -p "$destination_password" ssh "$destination_user"@"$destination_ip" "mkdir -p '$backup_dir'"
-
-# Set rsync options based on backup frequency
-case $backup_frequency in
-daily)
-rsync_options="-avz --delete --exclude 'weekly*' --exclude 'monthly*'"
-;;
-weekly)
-rsync_options="-avz --delete --exclude 'daily*' --exclude 'monthly*'"
-;;
-monthly)
-rsync_options="-avz --delete --exclude 'daily*' --exclude 'weekly*'"
-;;
-esac
-
-# Run rsync command to perform backup
-rsync $rsync_options -e "sshpass -p '$destination_password' ssh" "$source_path_1" "$destination_user"@"$destination_ip":"$backup_dir"
-rsync $rsync_options -e "sshpass -p '$destination_password' ssh" "$source_path_2" "$destination_user"@"$destination_ip":"$backup_dir"
-
-# Log backup results
-echo "$(date) - Backup complete. Files copied to $backup_dir" >> "$log_file"
-
-# Send email with log attached
-echo "Backup complete. Log file attached." | mail -s "Backup success - $backup_frequency backup" "$email_address" < "$log_file"
-
-# Add cron job based on frequency
-if [ "$backup_frequency" == "daily" ]; then
-    cron_job="0 0 * * * $0"
-elif [ "$backup_frequency" == "weekly" ]; then
-    cron_job="0 0 * * 0 $0"
-elif [ "$backup_frequency" == "monthly" ]; then
-    cron_job="0 0 1 * * $0"
-fi
-
-(crontab -u "$(whoami)" -l; echo "$cron_job") | crontab -u "$(whoami)" -
-
-echo -e "${GREEN}Backup completed successfully.${NC}"
-echo -e "Cron job added: ${GREEN}$cron_job${NC}"
-
-# Exit script
+# Cleanup
+rm -f "$LOCK_FILE"
+echo -e "${GREEN}UnderHost Backup completed at $(date)${NC}" | tee -a "$LOG_FILE"
 exit 0
