@@ -52,8 +52,10 @@ The script will prompt for:
 source_path_1="/www/backup/database"
 source_path_2="/www/backup/site"
 destination_ip="backup.server.com"
+destination_port="22"
 destination_user="backupuser"
 destination_path="/remote/backups"
+destination_password="super-secret-password"
 email_address="admin@yourdomain.com"
 backup_frequency="weekly"
 ```
@@ -120,5 +122,5 @@ A: In `destination_path/frequency-date/` (e.g., `/remote/backups/weekly-2025-06-
 ---
 
 ## 📜 License  
-MIT License © 2023-2025 UnderHost.com  
-*Free for personal and commercial use*  
+GNU GPLv3 © 2023-2025 UnderHost.com  
+*Free for personal and commercial use under GPLv3 terms*  

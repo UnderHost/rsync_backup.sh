@@ -9,6 +9,8 @@
 # Copyright (C) 2023-2025 UnderHost.com
 # v2.2.0 (Optimized for UnderHost NVMe Storage)
 
+set -o pipefail
+
 # Configuration
 CONFIG_FILE="/etc/underhost/backup.conf"
 LOG_FILE="/var/log/underhost_backup.log"
@@ -56,8 +58,32 @@ install_package() {
     yum install -y "$1"
   elif command -v dnf &> /dev/null; then
     dnf install -y "$1"
+  elif command -v apk &> /dev/null; then
+    apk add "$1"
   else
     echo -e "${RED}Error: Package manager not supported${NC}"
+    exit 1
+  fi
+}
+
+validate_frequency() {
+  case "$1" in
+    daily|weekly|monthly) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+validate_config() {
+  local required=(source_path_1 destination_ip destination_port destination_user destination_path email_address backup_frequency destination_password)
+  for key in "${required[@]}"; do
+    if [ -z "${!key:-}" ]; then
+      echo -e "${RED}Error: Missing required config value: $key${NC}" >&2
+      exit 1
+    fi
+  done
+
+  if ! validate_frequency "$backup_frequency"; then
+    echo -e "${RED}Error: backup_frequency must be daily, weekly, or monthly${NC}" >&2
     exit 1
   fi
 }
@@ -67,15 +93,24 @@ init_config() {
   mkdir -p /etc/underhost
   echo -e "${YELLOW}Initializing new backup configuration...${NC}"
   
-  read -p "Enter source path 1: " source_path_1
-  read -p "Enter source path 2 (optional, press enter to skip): " source_path_2
-  read -p "Enter destination IP: " destination_ip
-  read -p "Enter destination SSH port (default 22): " destination_port
+  read -r -p "Enter source path 1: " source_path_1
+  read -r -p "Enter source path 2 (optional, press enter to skip): " source_path_2
+  read -r -p "Enter destination IP: " destination_ip
+  read -r -p "Enter destination SSH port (default 22): " destination_port
   destination_port=${destination_port:-22}
-  read -p "Enter destination user: " destination_user
-  read -p "Enter destination path: " destination_path
-  read -p "Enter email for notifications: " email_address
-  read -p "Backup frequency (daily/weekly/monthly): " backup_frequency
+  read -r -p "Enter destination user: " destination_user
+  read -r -p "Enter destination path: " destination_path
+  read -r -s -p "Enter destination password: " destination_password
+  echo ""
+  read -r -p "Enter email for notifications: " email_address
+
+  while true; do
+    read -r -p "Backup frequency (daily/weekly/monthly): " backup_frequency
+    if validate_frequency "$backup_frequency"; then
+      break
+    fi
+    echo -e "${YELLOW}Please enter daily, weekly, or monthly.${NC}"
+  done
 
   # Generate config file
   cat > "$CONFIG_FILE" <<EOL
@@ -86,10 +121,12 @@ destination_ip='$destination_ip'
 destination_port='$destination_port'
 destination_user='$destination_user'
 destination_path='$destination_path'
+destination_password='$destination_password'
 email_address='$email_address'
 backup_frequency='$backup_frequency'
 EOL
 
+  chmod 600 "$CONFIG_FILE"
   echo -e "${GREEN}Configuration saved to $CONFIG_FILE${NC}"
 }
 
@@ -98,17 +135,29 @@ if [ ! -f "$CONFIG_FILE" ]; then
   init_config
 fi
 source "$CONFIG_FILE"
+validate_config
 
 # Verify required packages
-for pkg in rsync sshpass mailutils; do
-  if ! command -v "$pkg" &> /dev/null; then
-    install_package "$pkg"
+if ! command -v rsync &> /dev/null; then
+  install_package "rsync"
+fi
+
+if ! command -v sshpass &> /dev/null; then
+  install_package "sshpass"
+fi
+
+if ! command -v mail &> /dev/null; then
+  if command -v apt-get &> /dev/null; then
+    install_package "mailutils"
+  else
+    install_package "mailx"
   fi
-done
+fi
 
 # Backup function
 perform_backup() {
-  local timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+  local timestamp
+  timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
   local backup_dir="$destination_path/$backup_frequency-$timestamp"
   
   echo -e "${BLUE}Starting UnderHost Backup at $(date)${NC}" | tee -a "$LOG_FILE"
@@ -125,14 +174,15 @@ perform_backup() {
   sshpass -p "$destination_password" rsync $rsync_opts -e "ssh -p $destination_port" \
     "$source_path_1" "$destination_user@$destination_ip:$backup_dir" | tee -a "$LOG_FILE"
   
-  if [ -n "$source_path_2" ]; then
+  if [ -n "${source_path_2:-}" ]; then
     echo -e "${YELLOW}Backing up $source_path_2...${NC}" | tee -a "$LOG_FILE"
     sshpass -p "$destination_password" rsync $rsync_opts -e "ssh -p $destination_port" \
       "$source_path_2" "$destination_user@$destination_ip:$backup_dir" | tee -a "$LOG_FILE"
   fi
   
   # Verify backup
-  local backup_size=$(sshpass -p "$destination_password" ssh -p "$destination_port" \
+  local backup_size
+  backup_size=$(sshpass -p "$destination_password" ssh -p "$destination_port" \
     "$destination_user@$destination_ip" "du -sh '$backup_dir' | cut -f1")
   
   echo -e "${GREEN}Backup completed successfully!${NC}" | tee -a "$LOG_FILE"
