@@ -7,7 +7,7 @@
 # UnderHost Dedicated Server Toolkit
 # GNU General Public License v3.0
 # Copyright (C) 2023-2025 UnderHost.com
-# v2.2.0 (Optimized for UnderHost NVMe Storage)
+# v2.2.1 (Optimized for UnderHost NVMe Storage)
 
 set -o pipefail
 
